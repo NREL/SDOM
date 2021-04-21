@@ -1,0 +1,86 @@
+"Run","Optimal"
+"Total cost US$"," "
+"1",11562131313.92351
+"Total capacity of gas combined cycle units (MW)"," "
+"1",0.00000
+"Total capacity of solar PV units (MW)"," "
+"1",33574.36937
+"Total capacity of wind units (MW)"," "
+"1",49623.20557
+"Total generation from solar PV units (MWh)"," "
+"1",47348688.30229
+"Total generation from wind units (MWh)"," "
+"1",179224886.32127
+"Total charge power capacity of storage units j (MW)"," "
+"1","Li-Ion",3226.36238
+"1","CAES",3346.51636
+"1","PHS",3693.58740
+"1","H2",3701.26471
+"Total discharge power capacity of storage units j (MW)"," "
+"1","Li-Ion",3226.36238
+"1","CAES",10531.74794
+"1","PHS",3693.58740
+"1","H2",10740.41045
+"Total energy capacity of storage units j (MWh)"," "
+"1","Li-Ion",8799.07986
+"1","CAES",104620.16367
+"1","PHS",55907.09529
+"1","H2",9645171.53775
+"Discharge duration for storage technology j (h)"," "
+"1","Li-Ion",2.52914
+"1","CAES",7.89804
+"1","PHS",13.38511
+"1","H2",595.68329
+"Total generation from storage units j (MWh)"," "
+"1","Li-Ion",1806989.53721
+"1","CAES",3495161.96311
+"1","PHS",6000062.05218
+"1","H2",9367549.33881
+"Solar Capex US$"," "
+"1",1763518330.12387
+"Solar FOM US$"," "
+"1",278602702.21764
+"Wind Capex US$"," "
+"1",4087550847.15947
+"Wind FOM US$"," "
+"1",1692482197.55659
+"Li-Ion Power Capex US$"," "
+"1",35635943.96014
+"Li-Ion Energy Capex US$"," "
+"1",114969616.68704
+"Li-Ion FOM US$"," "
+"1",33231532.56000
+"Li-Ion VOM US$"," "
+"1",5583597.66998
+"CAES Power Capex US$"," "
+"1",501761110.75430
+"CAES Energy Capex US$"," "
+"1",263434751.42780
+"CAES FOM US$"," "
+"1",33775662.09400
+"CAES VOM US$"," "
+"1",14402577.04848
+"PHS Power Capex US$"," "
+"1",245611757.06795
+"PHS Energy Capex US$"," "
+"1",185721329.66103
+"PHS FOM US$"," "
+"1",30440464.66325
+"PHS VOM US$"," "
+"1",6181141.02689
+"H2 Power Capex US$"," "
+"1",952742913.99763
+"H2 Energy Capex US$"," "
+"1",970966197.12970
+"H2 FOM US$"," "
+"1",345518641.11776
+"H2 VOM US$"," "
+"1",0.00000
+"GasCC Capex US$"," "
+"1",0.00000
+"GasCC FUEL US$"," "
+"1",0.00000
+"GasCC FOM US$"," "
+"1",0.00000
+"GasCC VOM US$"," "
+"1",0.00000

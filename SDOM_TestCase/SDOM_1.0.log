@@ -1,0 +1,324 @@
+
+--- Job SDOM_1.0.gms Start 04/15/21 14:04:06 24.9.2 r64480 WEX-VS8 x86 32bit/MS Windows
+GAMS 24.9.2   Copyright (C) 1987-2017 GAMS Development. All rights reserved
+Licensee: Large MUD - 20 User License                    G180911:1426CO-GEN
+          National Renewable Energy Laboratory (NREL), Strategic EnerDC3485
+          License Admin: Kelly Eurek, kelly.eurek@nrel.gov                 
+--- Starting compilation
+--- SDOM_1.0.gms(3) 2 Mb
+--- call echo "C:\Users\oguerra\Documents\Long-Term Energy Storage\OneNodeOptimization\SDOM_TestCase\SDOM_1.0.gms" | sed -e "s/.*\\\([^\\]*\)\\[^\\]*/$setglobal FNAME \1/" > blub
+--- SDOM_1.0.gms(4) 2 Mb
+--- .blub(1) 2 Mb
+--- SDOM_1.0.gms(5) 2 Mb
+--- call rm blub
+--- SDOM_1.0.gms(24) 3 Mb
+--- .Set_k(SolarPV).txt(100) 3 Mb
+--- SDOM_1.0.gms(29) 3 Mb
+--- .Set_w(Wind).txt(100) 3 Mb
+--- SDOM_1.0.gms(34) 3 Mb
+--- .Set_l(Properties).txt(17) 3 Mb
+--- SDOM_1.0.gms(74) 3 Mb
+--- .Load_hourly_2050.csv(8761) 4 Mb
+--- SDOM_1.0.gms(81) 4 Mb
+--- .Nucl_hourly_2019.csv(8761) 4 Mb
+--- SDOM_1.0.gms(88) 4 Mb
+--- .lahy_hourly_2019.csv(8761) 4 Mb
+--- SDOM_1.0.gms(95) 4 Mb
+--- .otre_hourly_2019.csv(8761) 4 Mb
+--- SDOM_1.0.gms(102) 4 Mb
+--- .CFSolar_2050.csv(8761) 15 Mb
+--- SDOM_1.0.gms(107) 15 Mb
+--- .CFWind_2050.csv(8761) 34 Mb
+--- SDOM_1.0.gms(112) 34 Mb
+--- .CapSolar_2050.csv(101) 34 Mb
+--- SDOM_1.0.gms(117) 34 Mb
+--- .CapWind_2050.csv(101) 34 Mb
+--- SDOM_1.0.gms(122) 34 Mb
+--- .StorageData_2050.csv(11) 34 Mb
+--- SDOM_1.0.gms(553) 35 Mb
+--- Starting execution: elapsed 0:00:01.517
+--- SDOM_1.0.gms(53310) 36 Mb
+--- Generating MIP model TechMix
+--- SDOM_1.0.gms(53206) 92 Mb  6 secs
+--- SDOM_1.0.gms(53208) 95 Mb  6 secs
+--- SDOM_1.0.gms(53216) 109 Mb  30 secs
+--- SDOM_1.0.gms(53313) 112 Mb
+--- LOOPS Runs = 1
+---   245,301 rows  184,174 columns  1,935,529 non-zeroes
+---   35,040 discrete-columns
+--- Executing CPLEX: elapsed 0:00:49.618
+
+IBM ILOG CPLEX   24.9.2 r64480 Released Nov 14, 2017 VS8 x86 32bit/MS Windows 
+--- GAMS/Cplex licensed for continuous and discrete problems.
+Cplex 12.6.3.0
+
+Reading parameter(s) from "C:\Users\oguerra\Documents\Long-Term Energy Storage\OneNodeOptimization\SDOM_TestCase\cplex.opt"
+>>  *lpmethod 4
+>>  submipscale 1
+*** Error line 2: Unknown option "submipscale"
+>>  threads 4
+Finished reading from "C:\Users\oguerra\Documents\Long-Term Energy Storage\OneNodeOptimization\SDOM_TestCase\cplex.opt"
+Reading data...
+Starting Cplex...
+Space for names approximately 8.36 Mb
+Use option 'names no' to turn use of names off
+Tried aggregator 2 times.
+MIP Presolve eliminated 12874 rows and 30386 columns.
+Aggregator did 2 substitutions.
+Reduced MIP has 232425 rows, 153786 columns, and 1839495 nonzeros.
+Reduced MIP has 35040 binaries, 0 generals, 0 SOSs, and 0 indicators.
+Presolve time = 1.84 sec. (784.95 ticks)
+Probing time = 0.16 sec. (20.53 ticks)
+Tried aggregator 1 time.
+Reduced MIP has 232425 rows, 153786 columns, and 1839495 nonzeros.
+Reduced MIP has 35040 binaries, 0 generals, 0 SOSs, and 0 indicators.
+Presolve time = 1.36 sec. (480.71 ticks)
+Probing time = 0.22 sec. (21.78 ticks)
+MIP emphasis: balance optimality and feasibility.
+MIP search method: dynamic search.
+Parallel mode: deterministic, using up to 4 threads.
+Parallel mode: deterministic, using up to 3 threads for concurrent optimization.
+Tried aggregator 1 time.
+Aggregator did 35040 substitutions.
+Reduced LP has 197385 rows, 118746 columns, and 1769415 nonzeros.
+Presolve time = 0.63 sec. (291.35 ticks)
+Initializing dual steep norms . . .
+
+Iteration log . . .
+Iteration:     1   Dual objective     =             0.000000
+Perturbation started.
+Iteration:   101   Dual objective     =             0.000000
+Iteration:   870   Dual objective     =        146077.049726
+Iteration:  1853   Dual objective     =        907407.639488
+Iteration:  2306   Dual objective     =       1890753.678228
+Iteration:  3373   Dual objective     =     220041014.586854
+Iteration:  4245   Dual objective     =    1756088408.014267
+Iteration:  4852   Dual objective     =    1766753062.029838
+Iteration:  5412   Dual objective     =    1766845335.332671
+Iteration:  6051   Dual objective     =    1841207846.846424
+Iteration:  7313   Dual objective     =    1870694588.314235
+Iteration:  7587   Dual objective     =    1885139532.195292
+Iteration:  8105   Dual objective     =    1886800005.460896
+Iteration:  8508   Dual objective     =    1887086333.416921
+Iteration:  8968   Dual objective     =    1890457509.737510
+Elapsed time = 24.83 sec. (10001.80 ticks, 9078 iterations)
+Iteration:  9464   Dual objective     =    1891355178.083610
+Iteration:  9912   Dual objective     =    1909477081.973207
+Iteration: 10391   Dual objective     =    1915958243.876501
+Iteration: 10848   Dual objective     =    1920187390.437940
+Iteration: 11484   Dual objective     =    1976211396.459641
+Iteration: 12320   Dual objective     =    1976211434.303419
+Iteration: 12767   Dual objective     =    1976211443.731962
+Iteration: 13225   Dual objective     =    1976211453.588830
+Iteration: 13677   Dual objective     =    1976211473.822875
+Elapsed time = 57.77 sec. (20002.22 ticks, 14180 iterations)
+Iteration: 14248   Dual objective     =    1976211497.335874
+Iteration: 14707   Dual objective     =    1976211528.099142
+Iteration: 15138   Dual objective     =    1976211556.776459
+Iteration: 15516   Dual objective     =    1976271115.621390
+Iteration: 15864   Dual objective     =    1976424326.048283
+Iteration: 16334   Dual objective     =    1977811482.671233
+Iteration: 16780   Dual objective     =    1978505600.176628
+Iteration: 17233   Dual objective     =    1978531944.191139
+Iteration: 18117   Dual objective     =    1979544019.370275
+Elapsed time = 88.42 sec. (30003.57 ticks, 18576 iterations)
+Iteration: 18598   Dual objective     =    1979544035.635548
+Iteration: 19086   Dual objective     =    1979544044.479721
+Iteration: 19530   Dual objective     =    1979544054.014856
+Iteration: 20001   Dual objective     =    1979560137.637642
+Iteration: 20268   Dual objective     =    1979560156.619256
+Iteration: 20458   Dual objective     =    1979613806.402161
+Iteration: 20711   Dual objective     =    1979655740.217710
+Iteration: 20983   Dual objective     =    1979655805.632935
+Iteration: 21253   Dual objective     =    1979655888.671725
+Iteration: 21664   Dual objective     =    1981544631.785096
+Iteration: 22059   Dual objective     =    1981544674.513527
+Elapsed time = 120.92 sec. (40003.92 ticks, 22361 iterations)
+Iteration: 22465   Dual objective     =    1981544837.904854
+Iteration: 22808   Dual objective     =    1981544862.125091
+Iteration: 23211   Dual objective     =    1981544901.841895
+Iteration: 23596   Dual objective     =    1981544948.259949
+Iteration: 24090   Dual objective     =    1981547873.221906
+Iteration: 24511   Dual objective     =    1981547906.896524
+Iteration: 24927   Dual objective     =    1981547941.611779
+Elapsed time = 151.94 sec. (50007.63 ticks, 24931 iterations)
+Iteration: 25339   Dual objective     =    1981547975.163312
+Iteration: 25802   Dual objective     =    1984478656.786124
+Iteration: 26108   Dual objective     =    2020352119.113215
+Iteration: 26441   Dual objective     =    2020352352.083781
+Iteration: 26811   Dual objective     =    2020352621.559032
+Iteration: 27087   Dual objective     =    2020514949.267293
+Iteration: 27450   Dual objective     =    2020849546.683268
+Iteration: 27963   Dual objective     =    2022488064.776904
+Iteration: 28350   Dual objective     =    2022627765.322766
+Elapsed time = 174.95 sec. (60008.61 ticks, 28918 iterations)
+Iteration: 28941   Dual objective     =    2024671105.725774
+Iteration: 29379   Dual objective     =    2024671132.670999
+Removing perturbation.
+Using devex.
+
+Barrier solved model.
+
+
+Iteration log . . .
+Iteration:     1    Objective     =   11562131313.923506
+Iteration:  1508    Objective     =   11562131313.923506
+Iteration:  3314    Objective     =   11562131313.923506
+Iteration:  4095    Objective     =   11562131313.923506
+Root relaxation solution time = 202.20 sec. (82912.66 ticks)
+
+        Nodes                                         Cuts/
+   Node  Left     Objective  IInf  Best Integer    Best Bound    ItCnt     Gap
+
+*     0+    0                      2.34088e+011        0.0000           100.00%
+Found incumbent of value 2.3408781e+011 after 212.91 sec. (87869.12 ticks)
+*     0     0      integral     0  1.15621e+010  1.15621e+010      315    0.00%
+Elapsed time = 359.44 sec. (253706.99 ticks, tree = 0.00 MB, solutions = 2)
+Found incumbent of value 1.1562131e+010 after 359.44 sec. (253706.99 ticks)
+
+Root node processing (before b&c):
+  Real time             =  359.50 sec. (253718.36 ticks)
+Parallel b&c, 4 threads:
+  Real time             =    0.00 sec. (0.00 ticks)
+  Sync time (average)   =    0.00 sec.
+  Wait time (average)   =    0.00 sec.
+                          ------------
+Total (root+branch&cut) =  359.50 sec. (253718.36 ticks)
+MIP status(101): integer optimal solution
+Cplex Time: 359.52sec (det. 253718.88 ticks)
+Fixing integer variables, and solving final LP...
+Parallel mode: deterministic, using up to 4 threads for concurrent optimization.
+Tried aggregator 1 time.
+LP Presolve eliminated 117994 rows and 100466 columns.
+Aggregator did 33760 substitutions.
+Reduced LP has 93547 rows, 49948 columns, and 1663496 nonzeros.
+Presolve time = 0.61 sec. (353.90 ticks)
+Initializing dual steep norms . . .
+
+Iteration log . . .
+Iteration:     1   Dual objective     =             0.000000
+Perturbation started.
+Iteration:   101   Dual objective     =             0.000000
+Iteration:   446   Dual objective     =         49009.067010
+Iteration:  2167   Dual objective     =      13689151.311271
+Iteration:  2352   Dual objective     =     162265375.806922
+Iteration:  3139   Dual objective     =    1516168122.243423
+Iteration:  3458   Dual objective     =    1570092506.764942
+Iteration:  3951   Dual objective     =    1624651199.919073
+Iteration:  4472   Dual objective     =    1624751735.722403
+Iteration:  4972   Dual objective     =    1641003344.602631
+Iteration:  5481   Dual objective     =    1665916023.246005
+Iteration:  6029   Dual objective     =    1666097372.126066
+Iteration:  6599   Dual objective     =    1694321766.186810
+Iteration:  7032   Dual objective     =    1695538082.437614
+Iteration:  7470   Dual objective     =    1696195665.070336
+Iteration:  7998   Dual objective     =    1713599616.013982
+Iteration:  8354   Dual objective     =    1713599620.611576
+Iteration:  8739   Dual objective     =    1713599622.595614
+Iteration:  9131   Dual objective     =    1713599626.042684
+Iteration:  9554   Dual objective     =    1713858759.730409
+Iteration:  9899   Dual objective     =    1713858761.269721
+Iteration: 10396   Dual objective     =    5718443990.493033
+Iteration: 10755   Dual objective     =    5918208918.364557
+Iteration: 11252   Dual objective     =    6266250446.907861
+Iteration: 11798   Dual objective     =    7091470754.120254
+Iteration: 12089   Dual objective     =    7342979616.981614
+Iteration: 12704   Dual objective     =    7565139131.997750
+Iteration: 13353   Dual objective     =    8708253521.689766
+Iteration: 13866   Dual objective     =    8909531614.796522
+Iteration: 14437   Dual objective     =    8973290201.488489
+Markowitz threshold set to 0.1
+Iteration: 14655   Dual objective     =    9038128394.830456
+Elapsed time = 18.49 sec. (10000.39 ticks, 14771 iterations)
+Iteration: 15493   Dual objective     =    9839260815.673000
+Iteration: 16106   Dual objective     =    9928378779.958912
+Iteration: 16725   Dual objective     =   10054516436.263226
+Iteration: 17341   Dual objective     =   10175596981.673676
+Iteration: 17913   Dual objective     =   10318112526.154678
+Iteration: 18551   Dual objective     =   10419606229.948145
+Iteration: 19201   Dual objective     =   10485768007.082111
+Iteration: 19502   Dual objective     =   10489976655.128641
+Iteration: 19943   Dual objective     =   10532655596.560980
+Iteration: 20486   Dual objective     =   10561849864.730661
+Iteration: 21071   Dual objective     =   10576549767.674944
+Iteration: 21475   Dual objective     =   10589345979.020079
+Iteration: 22128   Dual objective     =   10601826895.320911
+Iteration: 22502   Dual objective     =   10620890594.997290
+Iteration: 23032   Dual objective     =   10643786145.025084
+Iteration: 23369   Dual objective     =   10650038702.410484
+Iteration: 24063   Dual objective     =   10700260362.614300
+Iteration: 24417   Dual objective     =   10720560575.559561
+Iteration: 24750   Dual objective     =   10772431161.008846
+Iteration: 25405   Dual objective     =   10803872851.895746
+Iteration: 26047   Dual objective     =   10817120096.000881
+Iteration: 26404   Dual objective     =   10834592737.755507
+Iteration: 26810   Dual objective     =   10846483396.857779
+Iteration: 27247   Dual objective     =   10854409105.193272
+Iteration: 27722   Dual objective     =   10891901859.583139
+Iteration: 28045   Dual objective     =   10900135132.755480
+Iteration: 28781   Dual objective     =   10930801641.710533
+Iteration: 29403   Dual objective     =   10966408909.120693
+Elapsed time = 37.36 sec. (20000.79 ticks, 29935 iterations)
+Iteration: 29938   Dual objective     =   10989485149.160711
+Iteration: 30246   Dual objective     =   10997878527.889196
+Iteration: 30562   Dual objective     =   11014235771.298208
+Iteration: 31180   Dual objective     =   11041393720.294563
+Iteration: 31713   Dual objective     =   11055151023.698181
+Iteration: 32356   Dual objective     =   11072105091.667730
+Iteration: 32754   Dual objective     =   11093844681.649771
+Iteration: 33381   Dual objective     =   11116067319.050804
+Iteration: 33910   Dual objective     =   11142983731.961662
+Iteration: 34416   Dual objective     =   11163185736.154408
+Iteration: 35085   Dual objective     =   11206225247.131807
+Iteration: 35499   Dual objective     =   11233042924.295721
+Iteration: 36114   Dual objective     =   11254951120.420094
+Iteration: 36558   Dual objective     =   11264238470.209509
+Iteration: 37135   Dual objective     =   11271278178.492809
+Iteration: 37764   Dual objective     =   11282893169.766840
+Iteration: 38329   Dual objective     =   11292885945.081423
+Iteration: 38925   Dual objective     =   11301899744.915138
+Elapsed time = 56.56 sec. (30021.25 ticks, 39041 iterations)
+Iteration: 39041   Dual objective     =   11303601667.276051
+Iteration: 40214   Dual objective     =   11308985723.346672
+Iteration: 40613   Dual objective     =   11314145902.941444
+Iteration: 41091   Dual objective     =   11331978669.686306
+Iteration: 41684   Dual objective     =   11339645376.552702
+Iteration: 42026   Dual objective     =   11347473554.490852
+Iteration: 42730   Dual objective     =   11357206508.265650
+Iteration: 43288   Dual objective     =   11363705355.520023
+Removing perturbation.
+
+Barrier solved model.
+
+Fixed MIP status(1): optimal
+Cplex Time: 65.20sec (det. 28680.63 ticks)
+
+Proven optimal solution.
+
+MIP Solution:  11562131313.923504    (315 iterations, 0 nodes)
+Final Solve:   11562131313.923508    (101 iterations)
+
+Best possible: 11562131313.923504
+Absolute gap:            0.000000
+Relative gap:            0.000000
+
+--- Restarting execution
+--- SDOM_1.0.gms(53313) 44 Mb
+--- Reading solution for model TechMix
+--- SDOM_1.0.gms(53313) 62 Mb
+--- Executing after solve: elapsed 0:07:56.662
+--- SDOM_1.0.gms(53364) 63 Mb
+--- Putfile csv renamed: OutputSummary_SDOM_SDOM_TestCase_Nuclear_1_Target_1.00_.csv
+--- SDOM_1.0.gms(53514) 63 Mb
+--- Putfile csvStorage renamed: OutputStorage_SDOM_SDOM_TestCase_Nuclear_1_Target_1.00_.csv
+--- SDOM_1.0.gms(53526) 63 Mb
+--- Putfile csvGen renamed: OutputGeneration_SDOM_SDOM_TestCase_Nuclear_1_Target_1.00_.csv
+--- SDOM_1.0.gms(53538) 63 Mb
+--- Putfile csvVRE renamed: OutputSelectedVRE_SDOM_SDOM_TestCase_Nuclear_1_Target_1.00_.csv
+--- SDOM_1.0.gms(53548) 63 Mb
+--- Putfile csv C:\Users\oguerra\Documents\Long-Term Energy Storage\OneNodeOptimization\SDOM_TestCase\OutputSummary_SDOM_SDOM_TestCase_Nuclear_1_Target_1.00_.csv
+--- Putfile csvStorage C:\Users\oguerra\Documents\Long-Term Energy Storage\OneNodeOptimization\SDOM_TestCase\OutputStorage_SDOM_SDOM_TestCase_Nuclear_1_Target_1.00_.csv
+--- Putfile csvGen C:\Users\oguerra\Documents\Long-Term Energy Storage\OneNodeOptimization\SDOM_TestCase\OutputGeneration_SDOM_SDOM_TestCase_Nuclear_1_Target_1.00_.csv
+--- Putfile csvVRE C:\Users\oguerra\Documents\Long-Term Energy Storage\OneNodeOptimization\SDOM_TestCase\OutputSelectedVRE_SDOM_SDOM_TestCase_Nuclear_1_Target_1.00_.csv
+*** Status: Normal completion
+--- Job SDOM_1.0.gms Stop 04/15/21 14:12:03 elapsed 0:07:57.179
