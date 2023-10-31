@@ -1,6 +1,13 @@
+# Byte-compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+
 # Folders
 .vscode/
 
 # Files
 ~$*.xlsx 
 SDOM_1.0_copy.gms
+*.gms
+*.gsp
