@@ -1,10 +1,11 @@
 name: SDOM_python
 channels:
-  - defaults
   - conda-forge
 dependencies:
-  # - python=3.8
   - python=3.9
-  - pyomo
-  - numpy
   - pandas
+  - pyomo
+  - coincbc # a different solver can be chosen 
+  - pip
+  - pip:
+      - numpy

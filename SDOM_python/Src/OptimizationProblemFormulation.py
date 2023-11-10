@@ -1,4 +1,9 @@
+# -*- coding: utf-8 -*-
 """
+Created on Oct 2023
+
+@author: 
+
 One node Optimal Technology Mix for VRE integration
 
 This model determines optimal technology mix, including wind, solar PV, and
@@ -6,8 +11,10 @@ energy storage, to achieve a given VRE target.
 """
 
 import pandas as pd
+import os
 from pyomo.environ import (ConcreteModel, Set, Param, Var, Objective, 
-                           Constraint, NonNegativeReals, Binary, RangeSet, Table, sqrt, minimize, Reals)
+                           Constraint, NonNegativeReals, Binary, RangeSet, sqrt, minimize, Reals, SolverFactory)
+from pyomo.opt import SolverStatus, TerminationCondition
 
 
 
@@ -18,55 +25,86 @@ if 'GenMix_TargetValue' not in globals():
 if 'AlphaNuclearValue' not in globals():
     AlphaNuclearValue = 1 # default value
 
+main_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) #main directory
 
-#### Load data from CSV files ####
-load_hourly_2050_df = pd.read_csv("Load_hourly_2050.csv")
-nucl_hourly_2019_df = pd.read_csv("Nucl_hourly_2019.csv")
-lahy_hourly_2019_df = pd.read_csv("lahy_hourly_2019.csv")
-otre_hourly_2019_df = pd.read_csv("otre_hourly_2019.csv")
-CFSolar_2050_df = pd.read_csv("CFSolar_2050.csv")
-CFWind_2050_df = pd.read_csv("CFWind_2050.csv")
-CapSolar_2050_df = pd.read_csv("CapSolar_2050.csv")
-CapWind_2050_df = pd.read_csv("CapWind_2050.csv")
-StorageData_2050_df = pd.read_csv("StorageData_2050.csv")
+data_dir = os.path.join(main_dir, 'SDOM_TestCase') # base path for the data directory
+print(data_dir)
+
+# print(os.path.join(data_dir, 'Load_hourly_2050.csv'))
+
+# Dynamic paths to read the input files
+load_hourly_2050_df = pd.read_csv(os.path.join(data_dir, 'Load_hourly_2050.csv'))
+nucl_hourly_2019_df = pd.read_csv(os.path.join(data_dir, 'Nucl_hourly_2019.csv'))
+lahy_hourly_2019_df = pd.read_csv(os.path.join(data_dir, 'lahy_hourly_2019.csv'))
+otre_hourly_2019_df = pd.read_csv(os.path.join(data_dir, 'otre_hourly_2019.csv'))
+cfsolar_2050_df = pd.read_csv(os.path.join(data_dir, 'CFSolar_2050.csv'))
+cfwind_2050_df = pd.read_csv(os.path.join(data_dir, 'CFWind_2050.csv'))
+capsolar_2050_df = pd.read_csv(os.path.join(data_dir, 'CapSolar_2050.csv'))
+capwind_2050_df = pd.read_csv(os.path.join(data_dir, 'CapWind_2050.csv'))
+storagedata_2050_df = pd.read_csv(os.path.join(data_dir, 'StorageData_2050.csv'))
+
+# print(cfsolar_2050_df)
+# print(cfwind_2050_df.head())
+# print(storagedata_2050_df)
 
 
 
 #### Initialize model ####
+
+separator = '=' * 50
+print(f'\n{separator}\n{"Initializing the model ....".center(len(separator))}\n{separator}\n')
 
 model = ConcreteModel()
 
 
 #### Define the sets ####
 
-model.h = Set(initialize=range(1, 8761))  # set "h" for hours
+separator = '=' * 50
+print(f'\n{separator}\n{"Defining the sets ....".center(len(separator))}\n{separator}\n')
 
-with open('Set_k(SolarPV).txt', 'r') as file: 
+model.h = Set(initialize=range(1, 8761))  # set "h" : hours
+print('Size of model.h:', len(model.h))  # check that defined correctly
+
+with open(os.path.join(data_dir, 'Set_k(SolarPV).txt'), 'r') as file: 
     k_values = [line.strip() for line in file] 
+model.k = Set(initialize=k_values) # set "k" : solar plants
+print('Size of model.k:', len(model.k))  # check that defined correctly
 
-model.k = Set(initialize=k_values) # set "k" for solar plants
-
-with open('Set_w(Wind).txt', 'r') as file:
+with open(os.path.join(data_dir, 'Set_w(Wind).txt'), 'r') as file:
     w_values = [line.strip() for line in file]
+model.w = Set(initialize=w_values) # set "w" : wind plants
+print('Size of model.w:', len(model.w))  # check that defined correctly
 
-model.w = Set(initialize=w_values) # set "w" for wind plants
 
-with open('Set_l(Properties).txt', 'r') as file:
+with open(os.path.join(data_dir, 'Set_l(Properties).txt'), 'r') as file:
     l_values = [line.strip() for line in file]
+model.l = Set(initialize=l_values) # set "l" : properties of power plants
+print('Size of model.l:', len(model.l))  # check that defined correctly
 
-model.l = Set(initialize=l_values) # set "l" for properties of power plants
+model.j = Set(initialize=['Li-Ion', 'CAES', 'PHS', 'H2']) # set "j" : energy storage technologies
+print('Size of model.j:', len(model.j))  # check that defined correctly
 
-model.j = Set(initialize=['Li-Ion', 'CAES', 'PHS', 'H2']) # set "j" for energy storage technologies
-model.b = Set(within=model.j, initialize=['Li-Ion', 'PHS']) # set "b(j)" for storage technologies with coupled charging and discharging units
-model.sp = Set(initialize=['P_Capex', 'E_Capex', 'Eff', 'Min_Duration', 'Max_Duration', 'Max_P', 'FOM', 'VOM', 'lifetime', 'CostRatio']) # set "sp" for properties of storage technologies
+model.b = Set(within=model.j, initialize=['Li-Ion', 'PHS']) # set "b(j)" : storage technologies with coupled charging and discharging units
+print('Size of model.b:', len(model.b))  # check that defined correctly
+
+model.sp = Set(initialize=['P_Capex', 'E_Capex', 'Eff', 'Min_Duration', 'Max_Duration', 'Max_P', 'FOM', 'VOM', 'Lifetime', 'CostRatio']) # set "sp" : properties of storage technologies
+print('Size of model.sp:', len(model.sp))  # check that defined correctly
+
 model.Runs = RangeSet(1) 
+
+
+
+
 
 
 #### Setting Scalars ####
 
+separator = '=' * 50
+print(f'\n{separator}\n{"Setting the scalars ....".center(len(separator))}\n{separator}\n')
+
 # Define the scalars 
-model.FCR_VRE = Param(initialize=0, mutable=True) # (mutable parameters so that they can be changed without reconstructing entire model)
-model.FCR_GasCC = Param(initialize=0, mutable=True)
+# model.FCR_VRE = Param(initialize=0, mutable=True) # (mutable parameters so that they can be changed without reconstructing entire model)
+# model.FCR_GasCC = Param(initialize=0, mutable=True)
 model.GenMix_Target = Param(initialize=GenMix_TargetValue, mutable=True)
 model.CapexGasCC = Param(initialize=940.6078576, mutable=True)
 model.HR = Param(initialize=6.4005, mutable=True)
@@ -77,53 +115,180 @@ model.AlphaNuclear = Param(initialize=AlphaNuclearValue, mutable=True)
 model.AlphaLargHy = Param(initialize=1, mutable=True)
 model.AlphaOtheRe = Param(initialize=1, mutable=True)
 model.MaxCycles = Param(initialize=3250, mutable=True)
-model.r = Param(initialize=0.06, mutable=True)
+# model.r = Param(initialize=0.06, mutable=True)
 
-# Calculate values for FCR_VRE and FCR_GasCC based on the given formula
-def calculate_FCR(m, r):
-    return (r*(1+r)**30)/((1+r)**30-1)
+print('Size of GenMix_Target:', len(model.GenMix_Target))  # check that defined correctly
 
-model.FCR_VRE = calculate_FCR(model, model.r)
-model.FCR_GasCC = calculate_FCR(model, model.r)
+r = 0.06  # Scalar value for the discount rate
 
 
+# Calculate the FCR using the scalar value
+def calculate_FCR(r):
+    return (r * (1 + r)**30) / ((1 + r)**30 - 1)
 
-#### Initialize parameters ####
+fcr_value = calculate_FCR(r)
 
-# Parameters for hourly data
-load_data = {row['*Hour']: row['Load'] for _, row in load_hourly_2050_df.iterrows()}
+model.FCR_VRE = Param(initialize=fcr_value)
+model.FCR_GasCC = Param(initialize=fcr_value)
+
+print('Size of FCR_VRE:', len(model.FCR_VRE))  # check that defined correctly
+print('Size of model.FCR_GasCC:', len(model.FCR_GasCC))  # check that defined correctly
+
+fcr_value = calculate_FCR(r)
+print(f"FCR calculated: {fcr_value}")
+
+
+
+#### Create dictionaries from the dataframes which will be needed to define model.blabla ####
+
+separator = '=' * 50
+print(f'\n{separator}\n{"Creating necessary dictionaries ....".center(len(separator))}\n{separator}\n')
+
+#--- Parameters for hourly data
+load_data = {row['*Hour']: row['Load'] for _, row in load_hourly_2050_df.iterrows()} #  creating a dictionary where the keys are the values from the '*Hour' column, and the values are the corresponding 'Load' values from the load_hourly_2050_df DataFrame.
 nuclear_data = {row['*Hour']: row['Nuclear'] for _, row in nucl_hourly_2019_df.iterrows()}
-large_hydro_data = {row['*Hour']: row['LargeHydro'] for _, row in lahy_hourly_2019_df.iterrows()}
+large_hydro_data = {row['*Hour']: row['Large Hydro'] for _, row in lahy_hourly_2019_df.iterrows()}
 other_renewables_data = {row['*Hour']: row['OtherRenewables'] for _, row in otre_hourly_2019_df.iterrows()}
 
-model.Load = Param(model.h, initialize=load_data)
+#--- Other Params
+
+# GAMS command: Table CFSolar(h,k) Hourly capacity factor for solar PV plants (fraction)
+
+cfsolar_data = {} # initialization
+for index, row in cfsolar_2050_df.iterrows():
+    hour = row['Hour']
+    # Loop through each solar plant ID in the columns (excluding the 'Hour' column)
+    for plant_id in cfsolar_2050_df.columns[1:]:
+        cfsolar_data[(hour, plant_id)] = row[plant_id] # create a dictionary that maps each hour and plant ID to the corresponding capacity factor.
+
+num_hours = 8760 # Number of hours should be 8760
+
+num_solar_plants = len(cfsolar_2050_df.columns) - 1 # Number of solar PV plants is the number of columns minus 1 (for the 'Hour' column)
+
+expected_num_items = num_hours * num_solar_plants # The expected number of items in the dictionary
+
+# The actual number of items in the dictionary
+actual_num_items = len(cfsolar_data)
+
+# Check if the actual number of items matches the expected number
+if actual_num_items == expected_num_items:
+    print("The dictionary has the correct number of items.")
+else:
+    print("The number of items in the dictionary is incorrect.")
+    print(f"Expected number of items: {expected_num_items}")
+    print(f"Actual number of items: {actual_num_items}")
+
+
+# GAMS command: Table CFWind(h,w) Hourly capacity factor for wind plants (fraction)
+
+# cfwind_data = {(row['h'], row['w']): row['CFWind'] for _, row in cfwind_2050_df.iterrows()}
+
+cfwind_data = {}
+for _, row in cfwind_2050_df.iterrows():
+    for col in cfwind_2050_df.columns:
+        if col != 'Hour':  # don't want to use the 'Hour' column as a plant identifier
+            cfwind_data[(row['Hour'], col)] = row[col]
+
+
+# GAMS command: Table CapSolar(k,l) Properties of the solar PV plants
+
+capsolar_data = {}
+for _, row in capsolar_2050_df.iterrows():
+    k_id = str(int(row['sc_gid'])) 
+    for l_property in model.l:
+        if l_property in capsolar_2050_df.columns:
+            capsolar_data[(k_id, l_property)] = row[l_property]
+        else:
+            capsolar_data[(k_id, l_property)] = None  # or some default value
+            print(f"Solar property {l_property} not found for plant {k_id}")
+
+# Debugging: print out the first few keys to check their format
+print(list(capsolar_data.keys())[:5])
+
+
+
+# GAMS command: Table CapWind(w,l) Properties of the wind plants
+
+
+capwind_data = {}
+for _, row in capwind_2050_df.iterrows():
+    w_id = str(int(row['sc_gid']))  
+    for l_property in model.l:
+        if l_property in capwind_2050_df.columns:
+            capwind_data[(w_id, l_property)] = row[l_property]
+        else:
+            capwind_data[(w_id, l_property)] = None  # or some default value
+            print(f"Wind property {l_property} not found for plant {w_id}")
+
+# Debugging: print out the first few keys to check their format
+print(list(capwind_data.keys())[:5])
+
+
+# GAMS command: Table StorageData(sp,j) Properties of storage technologies
+
+# storagedata_data = {(row['sp'], row['j']): row['StorageData'] for _, row in storagedata_2050_df.iterrows()}
+
+
+storage_data = {}
+for _, row in storagedata_2050_df.iterrows():
+    property_name = row['Unnamed: 0']  
+    for tech in model.j:
+        storage_data[(property_name, tech)] = row[tech]
+
+print(list(storage_data.keys()))
+
+
+
+#### Initialize model parameters ####
+
+separator = '=' * 50
+print(f'\n{separator}\n{"Initializing model parameters ....".center(len(separator))}\n{separator}\n')
+
+
+model.Load = Param(model.h, initialize=load_data)  
 model.Nuclear = Param(model.h, initialize=nuclear_data)
 model.LargeHydro = Param(model.h, initialize=large_hydro_data)
 model.OtherRenewables = Param(model.h, initialize=other_renewables_data)
 
-# Tables for capacity factors and properties
-cfsolar_data = {(row['h'], row['k']): row['CFSolar'] for _, row in CFSolar_2050_df.iterrows()} #define cfsolar_data dictionary
-cfwind_data = {(row['h'], row['w']): row['CFWind'] for _, row in CFWind_2050_df.iterrows()}
-capsolar_data = {(row['k'], row['l']): row['CapSolar'] for _, row in CapSolar_2050_df.iterrows()}
-capwind_data = {(row['w'], row['l']): row['CapWind'] for _, row in CapWind_2050_df.iterrows()}
-storagedata_data = {(row['sp'], row['j']): row['StorageData'] for _, row in StorageData_2050_df.iterrows()}
 
-model.CFSolar = Table(model.h, model.k, initialize=cfsolar_data)
-model.CFWind = Table(model.h, model.w, initialize=cfwind_data)
-model.CapSolar = Table(model.k, model.l, initialize=capsolar_data)
-model.CapWind = Table(model.w, model.l, initialize=capwind_data)
-model.StorageData = Table(model.sp, model.j, initialize=storagedata_data)
+model.CFSolar = Param(model.h, model.k, initialize=cfsolar_data)  
+model.CFWind = Param(model.h, model.w, initialize=cfwind_data)
+model.CapSolar = Param(model.k, model.l, initialize=capsolar_data)
 
-# Capital recovery factor for storage technology
+model.CapWind = Param(model.w, model.l, initialize=capwind_data)
+
+model.StorageData = Param(model.sp, model.j, initialize=storage_data)
+
+
+print('Size of model.CFSolar:', len(model.CFSolar))  # check that defined correctly
+print('Size of model.CFWind:', len(model.CFWind))  # check that defined correctly
+print('Size of model.CapSolar:', len(model.CapSolar))  # check that defined correctly
+print('Size of model.CapWind:', len(model.CapWind))  # check that defined correctly
+print('Size of model.StorageData:', len(model.StorageData))  # check that defined correctly
+
+
+
+r = 0.06  # Scalar value for the discount rate
+
 def crf_rule(model, j):
-    return (model.r * (1 + model.r) ** model.StorageData['Lifetime', j]) / ((1 + model.r) ** model.StorageData['Lifetime', j] - 1)
+    n = model.StorageData['Lifetime', j]
+    # return (r * (1 + r)**n) / ((1 + r)**n - 1)
+    print(f"crf_rule called for storage technology {j} with lifetime {n}")
+    crf = (r * (1 + r)**n) / ((1 + r)**n - 1)
+    print(f"CRF for {j} with lifetime {n}: {crf}")
+    return crf
 
+# Initialize the CRF parameter with the updated rule
 model.CRF = Param(model.j, initialize=crf_rule)
+
 
 
 #### Setting Variables ####
 
-model.TSC = Var(domain=Reals) # free variable
+separator = '=' * 50
+print(f'\n{separator}\n{"Setting model variables ....".center(len(separator))}\n{separator}\n')
+
+# model.TSC = Var(domain=Reals) # free variable
 model.Ystorage = Var(model.j, model.h, domain=Binary) # binary variables
 
 model.PC = Var(model.h, model.j, domain=NonNegativeReals)
@@ -149,16 +314,32 @@ def capcc_bound_rule(model):
 model.CapCC.setub(capcc_bound_rule)
 
 
+
 #### Setting Equations ####
 
-# Objective Function (Eq 1)
-model.TSC = Objective(expr=sum(
-    (model.FCR_VRE * (1000 * model.CapSolar[k, 'CAPEX_M'] + model.CapSolar[k, 'trans_cap_cost']) + 1000 * model.CapSolar[k, 'FOM_M']) * model.CapSolar[k, 'capacity'] * model.Ypv[k] for k in model.k) +
-    sum((model.FCR_VRE * (1000 * model.CapWind[w, 'CAPEX_M'] + model.CapWind[w, 'trans_cap_cost']) + 1000 * model.CapWind[w, 'FOM_M']) * model.CapWind[w, 'capacity'] * model.Ywind[w] for w in model.w) +
-    sum(model.CRF[j] * (1000 * model.StorageData['CostRatio', j] * model.StorageData['P_Capex', j] * model.Pcha[j] + 1000 * (1 - model.StorageData['CostRatio', j]) * model.StorageData['P_Capex', j] * model.Pdis[j] + 1000 * model.StorageData['E_Capex', j] * model.Ecap[j]) for j in model.j) +
-    sum(1000 * model.StorageData['CostRatio', j] * model.StorageData['FOM', j] * model.Pcha[j] + 1000 * (1 - model.StorageData['CostRatio', j]) * model.StorageData['FOM', j] * model.Pdis[j] + model.StorageData['VOM', j] * sum(model.PD[h, j] for h in model.h) for j in model.j) +
+separator = '=' * 50
+print(f'\n{separator}\n{"Setting equations ....".center(len(separator))}\n{separator}\n')
+
+#actual objective function
+model.TotalSystemCost = Objective(
+    expr=sum(
+        (model.FCR_VRE * (1000 * model.CapSolar[k, 'CAPEX_M'] + model.CapSolar[k, 'trans_cap_cost']) + 1000 * model.CapSolar[k, 'FOM_M']) * model.CapSolar[k, 'capacity'] * model.Ypv[k] for k in model.k
+    ) +
+    sum(
+        (model.FCR_VRE * (1000 * model.CapWind[w, 'CAPEX_M'] + model.CapWind[w, 'trans_cap_cost']) + 1000 * model.CapWind[w, 'FOM_M']) * model.CapWind[w, 'capacity'] * model.Ywind[w] for w in model.w
+    ) +
+    sum(
+        model.CRF[j] * (1000 * model.StorageData['CostRatio', j] * model.StorageData['P_Capex', j] * model.Pcha[j] + 1000 * (1 - model.StorageData['CostRatio', j]) * model.StorageData['P_Capex', j] * model.Pdis[j] + 1000 * model.StorageData['E_Capex', j] * model.Ecap[j]) for j in model.j
+    ) +
+    sum(
+        1000 * model.StorageData['CostRatio', j] * model.StorageData['FOM', j] * model.Pcha[j] + 1000 * (1 - model.StorageData['CostRatio', j]) * model.StorageData['FOM', j] * model.Pdis[j] + model.StorageData['VOM', j] * sum(model.PD[h, j] for h in model.h) for j in model.j
+    ) +
     model.FCR_GasCC * 1000 * model.CapexGasCC * model.CapCC + model.GasPrice * model.HR * sum(model.GenCC[h] for h in model.h) + model.FOM_GasCC * 1000 * model.CapCC + model.VOM_GasCC * sum(model.GenCC[h] for h in model.h),
-    sense=minimize)
+    sense=minimize
+)
+#end
+
+
 
 # Power Balance (Eq 6)
 model.Supply = Constraint(model.h, 
@@ -224,4 +405,40 @@ model.BackupGen = Constraint(model.h, rule=lambda model, h: model.CapCC >= model
 model.MaxCycleYear = Constraint(rule=lambda model: sum(model.PD[h, 'Li-Ion'] for h in model.h) <= (model.MaxCycles / model.StorageData['Lifetime', 'Li-Ion']) * model.Ecap['Li-Ion'])
 
 
+## End of opt. problem definition
+
+
+
+
+#### Solver Configuration and Execution ####
+
+separator = '=' * 50
+print(f'\n{separator}\n{"Solver configuration and execution ....".center(len(separator))}\n{separator}\n')
+
+
+# Solver stuff: 
+
+# Create a solver
+solver = SolverFactory('cbc')
+
+# Setting solver options if necessary 
+solver.options['ratioGap'] = 0.03 # Equivalent to optcr in GAMS
+solver.options['sec'] = 1000000 # Equivalent to resLim in GAMS, but this is a very high limit
+solver.options['threads'] = 4 # Assuming CBC supports this option for parallel processing
+
+# Solve the model
+result = solver.solve(model, tee=True, logfile='solver.log')
+
+# Check the results
+if (result.solver.status == SolverStatus.ok) and (result.solver.termination_condition == TerminationCondition.optimal):
+    # detailed_results = extract_and_store_results(model) #df for results
+    print("Solver found an optimal solution!")
+elif result.solver.termination_condition == TerminationCondition.infeasible:
+    print("Solver declared model infeasible.")
+else:
+    # Something else is wrong
+    print("Solver Status: ", result.solver.status)
+
+
+print("Finished everything")
 
