@@ -50,16 +50,16 @@ This CSV file includes the following parameters:
 
  - FCR_VRE = Fixed Charge Rate for VRE
  - LifeTimeVRE = Life time of VRE in years
- - FCR_GasCC =  Fixed Charge Rate for Gas CC /0 /
+ - FCR_GasCC =  Fixed Charge Rate for Gas CC
  - LifeTimeGasCC = Life time of VRE in years
- - GenMix_Target =  /%GenMix_TargetValue%/
- - CapexGasCC =  Capex for gas combined cycle units (US$ per kW) /940.6078576/
- - HR =  Heat rate of gas combined cycle units (MMBtu per MWh) /6.4005/
- - GasPrice =  Gas prices (US$ per MMBtu per) /4.113894393/
- - FOM_GasCC =  FO&M for gas combined cycle units (US$ per kW-year) /13.2516707/
- - VOM_GasCC =  VO&M for gas combined cycle units (US$ per MWh) /2.226321156/
- - AlphaNuclear =  Activation of nuclear generation /%AlphaNuclearValue%/
- - AlphaLargHy =  Activation of large hydro generation /1/
- - AlphaOtheRe =  Activation of other renewable generation /1/
- - MaxCycles =  Lifetime (100% DoD) of Li-Ion batteries (cycles) /3250/
+ - GenMix_Target =  Renewable Energy Mix Target
+ - CapexGasCC =  Capex for gas combined cycle units (US$ per kW)
+ - HR =  Heat rate of gas combined cycle units (MMBtu per MWh)
+ - GasPrice =  Gas prices (US$ per MMBtu per)
+ - FOM_GasCC =  FO&M for gas combined cycle units (US$ per kW-year)
+ - VOM_GasCC =  VO&M for gas combined cycle units (US$ per MWh)
+ - AlphaNuclear =  Activation of nuclear generation
+ - AlphaLargHy =  Activation of large hydro generation
+ - AlphaOtheRe =  Activation of other renewable generation
+ - MaxCycles =  Lifetime (100% DoD) of Li-Ion batteries (cycles)
  - r =  discount rate
