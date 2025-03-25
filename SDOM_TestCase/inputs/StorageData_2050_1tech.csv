@@ -1,0 +1,11 @@
+,Li-Ion
+P_Capex,97.78
+E_Capex,115.67
+Eff,0.86
+Min_Duration,1
+Max_Duration,12
+Max_P,100000
+FOM,10.3
+VOM,3.09
+Lifetime,13
+CostRatio,0.5

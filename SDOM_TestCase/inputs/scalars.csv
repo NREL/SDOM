@@ -1,0 +1,16 @@
+,Value
+FCR_VRE,0
+LifeTimeVRE,30.0
+FCR_GasCC,0
+LifeTimeGasCC,30.0
+GenMix_Target,1.00
+CapexGasCC,940.6078576
+HR,6.4005
+GasPrice,4.113894393
+FOM_GasCC,13.2516707
+VOM_GasCC,2.226321156
+AlphaNuclear,1
+AlphaLargHy,1
+AlphaOtheRe,1
+MaxCycles,3250
+r,0.06
