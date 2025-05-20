@@ -21,17 +21,17 @@ Alias (h, hh)
 
 Set    k potential solar PV plants
 /
-$include Set_k(SolarPV).txt
+$include Set_k_SolarPV.csv
 /
 
 Set    w potential wind plants
 /
-$include Set_w(Wind).txt
+$include Set_w_Wind.csv
 /
 
 Set    l properties of power plants
 /
-$include Set_l(Properties).txt
+$include Set_l_Properties.csv
 /
 
 
@@ -60,6 +60,8 @@ Scalars
          AlphaOtheRe Activation of other renewable generation /1/
          MaxCycles Lifetime (100% DoD) of Li-Ion batteries (cycles) /3250/
          r discount rate /0.06/
+         PCLS_target /0.9/
+         EUE_max /10/
 ;
 
 FCR_VRE = (r*(1+r)**30)/((1+r)**30-1);
@@ -74,6 +76,10 @@ $Ondelim
 $include Load_hourly_2050.csv
 $Offdelim
 /
+
+Scalar total_critical_load;
+total_critical_load = sum(h, Load(h)) * 1;
+
 
 Parameter Nuclear(h) Generation from nuclear power plants for every hour in the analysis period (MW)
 /
@@ -128,7 +134,8 @@ Parameter CRF(j) Capital recovery factor for storage technology j
 
 CRF(j) = (r*(1+r)**StorageData('Lifetime',j))/((1+r)**StorageData('Lifetime',j)-1);
 
-*Display CRF;
+Display CRF;
+
 
 Free variable
          TSC Total electricity supply cost
@@ -149,8 +156,10 @@ Positive Variables
          CapCC Capacity requirements for backup gas combined cycle units (MW)
          GenCC(h) Generation from backup gas combined cycle units (MWh)
          Ypv(k) Capacity selection for solar PV plant k
-         Ywind(w) Capacity selection for wind plant w ;
+         Ywind(w) Capacity selection for wind plant w
 
+         LoadShed(h) Load shed for each hour
+         EUE         Expected Unserved Energy ;
 
 Ypv.up(k)   = 1;
 Ywind.up(w) =1;
@@ -186,6 +195,9 @@ Equations
          MaxEcap(j) Maximum energy capacity for storage technology j
          BackupGen(h) Required capacity from backup combined cycle units
          MaxCycleYear Maximum number of cycles per year for Li-Ion batteries
+         PCLS_Con Percentage of Critical Load Served constraint
+         EUE_Def  EUE calculation constraint
+         MaxEUE_Con Impose max EUE;
 ;
 
 Obj..    TSC =e= sum(k, (FCR_VRE*(1000*CapSolar(k,'CAPEX_M') + CapSolar(k,'trans_cap_cost')) + 1000*CapSolar(k,'FOM_M'))*CapSolar(k,'capacity')*Ypv(k)) +
@@ -234,23 +246,44 @@ BackupGen(h)..   CapCC =g= GenCC(h);
 
 MaxCycleYear..   sum(h,PD(h,'Li-Ion')) =l= (MaxCycles/StorageData('Lifetime','Li-Ion'))*Ecap('Li-Ion') ;
 
+PCLS_Con..       sum(h, Load(h) - LoadShed(h)) =g= PCLS_target * total_critical_load;
+
+EUE_Def..        EUE =e= sum(h, LoadShed(h));
+
+MaxEUE_Con..     EUE =l= EUE_max;
+
+
 *****************
 $offlisting
 $offsymxref offsymlist
 *****************
 
+EUE.fx = 0 ;
+Loadshed.fx(h) = 0 ;
+
 Model TechMix /All/;
 
-option optcr=0.03;
+option optcr=0.0;
 
 Option resLim = 1000000;
 
-Option mip = CPLEX;
-$onecho > cplex.opt
-*lpmethod 4
-submipscale 1
+Option mip = cbc;
+$ontext
+$onecho > cbc.opt
+loglevel 3
+presolve on
+
 threads 4
+        
 $offecho
+
+
+$onecho > cplex.opt
+loglevel 3
+threads 4
+        
+$offecho
+$offtext
 TechMix.OptFile = 1;
 
 *$ONTEXT
@@ -268,8 +301,12 @@ Parameter
          TotalCapScha(Runs,j) Total charge power capacity of storage units j (MW)
          TotalCapSdis(Runs,j) Total discharge power capacity of storage units j (MW)
          TotalEcapS(Runs,j) Total energy capacity of storage units j (MW)
+         TotalGenGasCC(Runs) Total generation from Gas CC units (MWh)
          TotalGenPV(Runs) Total generation from solar PV units (MWh)
          TotalGenWind(Runs) Total generation from wind units (MWh)
+         TotalOtherRen(Runs) Total generation from other renewable units (MWh)
+         TotalHydro(Runs) Total generation from hydro units (MWh)
+         TotalNuclear(Runs) Total generation from nuclear units (MWh)
          TotalGenS(Runs,j) Total generation from storage units j (MWh)
          TotalCost(Runs) Total cost US$
          SummaryPC(Runs,h,j) Charging power for storage technology j during hour h (MW)
@@ -321,9 +358,13 @@ loop ( Runs ,
      TotalCapScha(Runs,j) = Pcha.l(j);
      TotalCapSdis(Runs,j) = Pdis.l(j);
      TotalEcapS(Runs,j) = Ecap.l(j);
+     TotalGenGasCC(Runs) = sum(h,GenCC.l(h));
      TotalGenPV(Runs) = sum(h, GenPV.l(h));
      TotalGenWind(Runs) = sum(h, GenWind.l(h));
      TotalGenS(Runs,j) = sum((h),PD.l(h,j));
+     TotalOtherRen(Runs) = sum(h, OtherRenewables(h));
+     TotalHydro(Runs) = sum(h, LargeHydro(h));
+     TotalNuclear(Runs) = sum(h, Nuclear(h));
      SummaryPC(Runs,h,j) = PC.l(h,j);
      SummaryPD(Runs,h,j) = PD.l(h,j);
      SummarySOC(Runs,h,j) = SOC.l(h,j);
@@ -368,147 +409,203 @@ put_utility 'ren' / 'OutputSummary_SDOM_%FNAME%_Nuclear_' AlphaNuclear:0:0 '_Tar
 csv.pc = 5;
 PUT csv;
 
-PUT 'Run','Optimal'/;
+PUT 'Metric','Technology','Scenario','Optimal Value','Unit'/;
 
-PUT 'Total cost US$', ' '/;
 loop (Runs,
-     PUT Runs.tl, TotalCost(Runs):0:5 /);
+     PUT 'Total cost', '', Runs.tl, TotalCost(Runs):0:5, 'US$' /);
 
-PUT 'Total capacity of gas combined cycle units (MW)', ' '/;
 loop (Runs,
-     PUT Runs.tl, TotalCapCC(Runs):0:5 /);
+     PUT 'Capacity', 'GasCC', Runs.tl, TotalCapCC(Runs):0:5, 'MW' /);
 
-PUT 'Total capacity of solar PV units (MW)', ' '/;
 loop (Runs,
-     PUT Runs.tl, TotalCapPV(Runs):0:5 /);
+     PUT 'Capacity', 'Solar PV', Runs.tl, TotalCapPV(Runs):0:5, 'MW' /);
 
-PUT 'Total capacity of wind units (MW)', ' '/;
 loop (Runs,
-     PUT Runs.tl, TotalCapWind(Runs):0:5 /);
-
-PUT 'Total generation from solar PV units (MWh)', ' '/;
+     PUT 'Capacity', 'Wind', Runs.tl, TotalCapWind(Runs):0:5, 'MW' /);
+     
 loop (Runs,
-     PUT Runs.tl, TotalGenPV(Runs):0:5 /);
-
-PUT 'Total generation from wind units (MWh)', ' '/;
+     PUT 'Total capacity', 'All', Runs.tl, (TotalCapWind(Runs) + TotalCapPV(Runs) + TotalCapCC(Runs)):0:5, 'MW' /);
+     
 loop (Runs,
-     PUT Runs.tl, TotalGenWind(Runs):0:5 /);
+     PUT 'Total generation', 'GasCC', Runs.tl, TotalGenGasCC(Runs):0:5, 'MWh' /);
 
-PUT 'Total charge power capacity of storage units j (MW)', ' '/;
+loop (Runs,
+     PUT 'Total generation', 'Solar PV', Runs.tl, TotalGenPV(Runs):0:5, 'MWh' /);
+
+loop (Runs,
+     PUT 'Total generation', 'Wind', Runs.tl, TotalGenWind(Runs):0:5, 'MWh' /);
+     
+loop (Runs,
+     PUT 'Total generation', 'Other renewables', Runs.tl, TotalOtherRen(Runs):0:5, 'MWh' /);
+
+loop (Runs,
+     PUT 'Total generation', 'Hydro', Runs.tl, TotalHydro(Runs):0:5, 'MWh' /);
+     
+loop (Runs,
+     PUT 'Total generation', 'Nuclear', Runs.tl, TotalNuclear(Runs):0:5, 'MWh' /);
+     
 loop ((Runs,j),
-     PUT Runs.tl, j.tl, TotalCapScha(Runs,j):0:5 /);
+     PUT 'Total generation', j.tl, Runs.tl, TotalGenS(Runs,j):0:5, 'MWh' /);
+     
+loop (Runs,
+     PUT 'Total generation', 'All', Runs.tl, (TotalGenGasCC(Runs) + TotalGenPV(Runs) + TotalGenWind(Runs) + TotalOtherRen(Runs) + TotalHydro(Runs) + TotalNuclear(Runs) + sum(j,TotalGenS(Runs,j))):0:5, 'MWh' /);
+     
+loop (Runs,
+     PUT 'Total demand', '', Runs.tl, sum(h, Load(h)):0:5, 'MWh' /);
 
-PUT 'Total discharge power capacity of storage units j (MW)', ' '/;
+loop (Runs,
+     PUT 'CAPEX', 'GasCC', Runs.tl, GasCC_Capex(Runs):0:5, 'US$' /);
+
+loop (Runs,
+     PUT 'CAPEX', 'Solar PV', Runs.tl, SolarCapex(Runs):0:5, 'US$' /);
+
+loop (Runs,
+     PUT 'CAPEX', 'Wind', Runs.tl, WindCapex(Runs):0:5, 'US$' /);
+
+loop (Runs,
+     PUT 'Total generators CAPEX', 'All', Runs.tl, (GasCC_Capex(Runs) + SolarCapex(Runs) + WindCapex(Runs)):0:5, 'US$' /);      
+
+loop (Runs,
+     PUT 'Power Capex', 'Li-Ion', Runs.tl, Li_Ion_Pcapex(Runs):0:5, 'US$' /);
+     
+loop (Runs,
+     PUT 'Power Capex', 'CAES', Runs.tl, CAES_Pcapex(Runs):0:5, 'US$' /);
+     
+loop (Runs,
+     PUT 'Power Capex', 'PHS', Runs.tl, PHS_Pcapex(Runs):0:5, 'US$' /);
+     
+loop (Runs,
+     PUT 'Power Capex', 'H2', Runs.tl, H2_Pcapex(Runs):0:5, 'US$' /);
+
+loop (Runs,
+     PUT 'Total Power Capex', 'All', Runs.tl, (Li_Ion_Pcapex(Runs) + CAES_Pcapex(Runs) + PHS_Pcapex(Runs) + H2_Pcapex(Runs)):0:5, 'US$' /);
+     
+loop (Runs,
+     PUT 'Energy Capex', 'Li-Ion', Runs.tl, Li_Ion_Ecapex(Runs):0:5, 'US$' /);
+
+loop (Runs,
+     PUT 'Energy Capex', 'CAES', Runs.tl, CAES_Ecapex(Runs):0:5, 'US$' /);
+     
+loop (Runs,
+     PUT 'Energy Capex', 'PHS', Runs.tl, PHS_Ecapex(Runs):0:5, 'US$' /);
+     
+loop (Runs,
+     PUT 'Energy Capex', 'H2', Runs.tl, H2_Ecapex(Runs):0:5, 'US$' /);
+     
+loop (Runs,
+     PUT 'Total Energy Capex', 'All', Runs.tl, (Li_Ion_Ecapex(Runs) + CAES_Ecapex(Runs) + PHS_Ecapex(Runs) + H2_Ecapex(Runs)):0:5, 'US$' /);
+
+loop (Runs,
+     PUT 'Total Capex', 'Li-Ion', Runs.tl, (Li_Ion_Ecapex(Runs) + Li_Ion_Pcapex(Runs)):0:5, 'US$' /);
+
+loop (Runs,
+     PUT 'Total Capex', 'CAES', Runs.tl, (CAES_Ecapex(Runs) + CAES_Pcapex(Runs)):0:5, 'US$' /);
+     
+loop (Runs,
+     PUT 'Total Capex', 'PHS', Runs.tl, (PHS_Ecapex(Runs) + PHS_Pcapex(Runs)):0:5, 'US$' /);
+     
+loop (Runs,
+     PUT 'Total Capex', 'H2', Runs.tl, (H2_Ecapex(Runs) + H2_Pcapex(Runs)):0:5, 'US$' /);
+     
+loop (Runs,
+     PUT 'Total Storage Capex', 'All', Runs.tl, (Li_Ion_Pcapex(Runs) + CAES_Pcapex(Runs) + PHS_Pcapex(Runs) + H2_Pcapex(Runs) + Li_Ion_Ecapex(Runs) + CAES_Ecapex(Runs) + PHS_Ecapex(Runs) + H2_Ecapex(Runs)):0:5, 'US$' /);
+     
+
+loop (Runs,
+     PUT 'FOM', 'GasCC', Runs.tl, GasCC_FOM(Runs):0:5, 'US$' /);
+     
+loop (Runs,
+     PUT 'FOM', 'Solar PV', Runs.tl, SolarFOM(Runs):0:5, 'US$' /);
+
+loop (Runs,
+     PUT 'FOM', 'Wind', Runs.tl, WindFOM(Runs):0:5, 'US$' /);
+
+loop (Runs,
+     PUT 'FOM', 'Li-Ion ', Runs.tl, Li_Ion_FOM(Runs):0:5, 'US$' /);
+     
+loop (Runs,
+     PUT 'FOM', 'CAES', Runs.tl, CAES_FOM(Runs):0:5, 'US$' /);
+     
+loop (Runs,
+     PUT 'FOM', 'PHS', Runs.tl, PHS_FOM(Runs):0:5, 'US$' /);
+     
+loop (Runs,
+     PUT 'FOM', 'H2', Runs.tl, H2_FOM(Runs):0:5, 'US$' /);
+     
+loop (Runs,
+     PUT 'Total FOM', 'All', Runs.tl, (GasCC_FOM(Runs) + SolarFOM(Runs) + WindFOM(Runs) + Li_Ion_FOM(Runs) + CAES_FOM(Runs) + PHS_FOM(Runs) + H2_FOM(Runs)):0:5, 'US$' /);
+     
+loop (Runs,
+     PUT 'VOM', 'GasCC', Runs.tl, (GasCC_VOM(Runs) + GasCC_FUEL(Runs)):0:5, 'US$' /);
+
+loop (Runs,
+     PUT 'VOM', 'Li-Ion', Runs.tl, Li_Ion_VOM(Runs):0:5, 'US$' /);
+
+loop (Runs,
+     PUT 'VOM', 'CAES', Runs.tl, CAES_VOM(Runs):0:5, 'US$' /);
+
+loop (Runs,
+     PUT 'VOM', 'PHS', Runs.tl, PHS_VOM(Runs):0:5, 'US$' /);
+
+loop (Runs,
+     PUT 'VOM', 'H2', Runs.tl, H2_VOM(Runs):0:5, 'US$' /);
+
+loop (Runs,
+     PUT 'Total VOM', 'H2', Runs.tl, (GasCC_VOM(Runs) + GasCC_FUEL(Runs) + Li_Ion_VOM(Runs) + CAES_VOM(Runs) + PHS_VOM(Runs) + H2_VOM(Runs)):0:5, 'US$' /);
+     
+loop (Runs,
+     PUT 'OPEX', 'GasCC', Runs.tl, (GasCC_FOM(Runs) + GasCC_VOM(Runs) + GasCC_FUEL(Runs)):0:5, 'US$' /);
+     
+loop (Runs,
+     PUT 'OPEX', 'Solar PV', Runs.tl, SolarFOM(Runs):0:5, 'US$' /);
+
+loop (Runs,
+     PUT 'OPEX', 'Wind', Runs.tl, WindFOM(Runs):0:5, 'US$' /);
+
+loop (Runs,
+     PUT 'OPEX', 'Li-Ion ', Runs.tl, (Li_Ion_FOM(Runs) + Li_Ion_VOM(Runs)):0:5, 'US$' /);
+     
+loop (Runs,
+     PUT 'OPEX', 'CAES', Runs.tl, (CAES_FOM(Runs) + CAES_VOM(Runs)):0:5, 'US$' /);
+     
+loop (Runs,
+     PUT 'OPEX', 'PHS', Runs.tl, (PHS_FOM(Runs) + PHS_VOM(Runs)):0:5, 'US$' /);
+     
+loop (Runs,
+     PUT 'OPEX', 'H2', Runs.tl, (H2_FOM(Runs) + H2_VOM(Runs)):0:5, 'US$' /);
+     
+loop (Runs,
+     PUT 'Total OPEX', 'H2', Runs.tl, (GasCC_FOM(Runs) + SolarFOM(Runs) + WindFOM(Runs) + Li_Ion_FOM(Runs) + CAES_FOM(Runs) + PHS_FOM(Runs) + H2_FOM(Runs) + GasCC_VOM(Runs) + GasCC_FUEL(Runs) + Li_Ion_VOM(Runs) + CAES_VOM(Runs) + PHS_VOM(Runs) + H2_VOM(Runs)):0:5, 'US$' /);
+  
 loop ((Runs,j),
-     PUT Runs.tl, j.tl, TotalCapSdis(Runs,j):0:5 /);
+     PUT 'Charge power capacity', j.tl, Runs.tl,  TotalCapScha(Runs,j):0:5, 'MW' /);
+     
+loop (Runs,
+     PUT 'Total charge power capacity', 'All', Runs.tl,  sum(j,TotalCapScha(Runs,j)):0:5, 'MW' /);
 
-PUT 'Total energy capacity of storage units j (MWh)', ' '/;
 loop ((Runs,j),
-     PUT Runs.tl, j.tl, TotalEcapS(Runs,j):0:5 /);
-
-PUT 'Discharge duration for storage technology j (h)', ' '/;
+     PUT 'Discharge power capacity', j.tl, Runs.tl,  TotalCapSdis(Runs,j):0:5, 'MW' /);
+     
+loop (Runs,
+     PUT 'Total discharge power capacity', 'All', Runs.tl,  sum(j,TotalCapSdis(Runs,j)):0:5, 'MW' /);
+     
 loop ((Runs,j),
-     PUT Runs.tl, j.tl, SummaryD(Runs,j):0:5 /);
+     PUT 'Average power capacity', j.tl, Runs.tl,  ((TotalCapScha(Runs,j) + TotalCapSdis(Runs,j))/2):0:5, 'MW' /);
+     
+loop (Runs,
+     PUT 'Total average power capacity', 'All', Runs.tl,  (sum(j,(TotalCapScha(Runs,j) + TotalCapSdis(Runs,j)))/2):0:5, 'MW' /);
 
-PUT 'Total generation from storage units j (MWh)', ' '/;
 loop ((Runs,j),
-     PUT Runs.tl, j.tl, TotalGenS(Runs,j):0:5 /);
-
-PUT 'Solar Capex US$', ' '/;
+     PUT 'Energy capacity', j.tl, Runs.tl,  TotalEcapS(Runs,j):0:5, 'MWh' /);
+     
 loop (Runs,
-     PUT Runs.tl, SolarCapex(Runs):0:5 /);
+     PUT 'Total energy capacity', 'All', Runs.tl,  sum(j,TotalEcapS(Runs,j)):0:5, 'MWh' /);
 
-PUT 'Solar FOM US$', ' '/;
-loop (Runs,
-     PUT Runs.tl, SolarFOM(Runs):0:5 /);
-
-PUT 'Wind Capex US$', ' '/;
-loop (Runs,
-     PUT Runs.tl, WindCapex(Runs):0:5 /);
-
-PUT 'Wind FOM US$', ' '/;
-loop (Runs,
-     PUT Runs.tl, WindFOM(Runs):0:5 /);
-
-PUT 'Li-Ion Power Capex US$', ' '/;
-loop (Runs,
-     PUT Runs.tl, Li_Ion_Pcapex(Runs):0:5 /);
-
-PUT 'Li-Ion Energy Capex US$', ' '/;
-loop (Runs,
-     PUT Runs.tl, Li_Ion_Ecapex(Runs):0:5 /);
-
-PUT 'Li-Ion FOM US$', ' '/;
-loop (Runs,
-     PUT Runs.tl, Li_Ion_FOM(Runs):0:5 /);
-
-PUT 'Li-Ion VOM US$', ' '/;
-loop (Runs,
-     PUT Runs.tl, Li_Ion_VOM(Runs):0:5 /);
-
-PUT 'CAES Power Capex US$', ' '/;
-loop (Runs,
-     PUT Runs.tl, CAES_Pcapex(Runs):0:5 /);
-
-PUT 'CAES Energy Capex US$', ' '/;
-loop (Runs,
-     PUT Runs.tl, CAES_Ecapex(Runs):0:5 /);
-
-PUT 'CAES FOM US$', ' '/;
-loop (Runs,
-     PUT Runs.tl, CAES_FOM(Runs):0:5 /);
-
-PUT 'CAES VOM US$', ' '/;
-loop (Runs,
-     PUT Runs.tl, CAES_VOM(Runs):0:5 /);
-
-PUT 'PHS Power Capex US$', ' '/;
-loop (Runs,
-     PUT Runs.tl, PHS_Pcapex(Runs):0:5 /);
-
-PUT 'PHS Energy Capex US$', ' '/;
-loop (Runs,
-     PUT Runs.tl, PHS_Ecapex(Runs):0:5 /);
-
-PUT 'PHS FOM US$', ' '/;
-loop (Runs,
-     PUT Runs.tl, PHS_FOM(Runs):0:5 /);
-
-PUT 'PHS VOM US$', ' '/;
-loop (Runs,
-     PUT Runs.tl, PHS_VOM(Runs):0:5 /);
-
-PUT 'H2 Power Capex US$', ' '/;
-loop (Runs,
-     PUT Runs.tl, H2_Pcapex(Runs):0:5 /);
-
-PUT 'H2 Energy Capex US$', ' '/;
-loop (Runs,
-     PUT Runs.tl, H2_Ecapex(Runs):0:5 /);
-
-PUT 'H2 FOM US$', ' '/;
-loop (Runs,
-     PUT Runs.tl, H2_FOM(Runs):0:5 /);
-
-PUT 'H2 VOM US$', ' '/;
-loop (Runs,
-     PUT Runs.tl, H2_VOM(Runs):0:5 /);
-
-PUT 'GasCC Capex US$', ' '/;
-loop (Runs,
-     PUT Runs.tl, GasCC_Capex(Runs):0:5 /);
-
-PUT 'GasCC FUEL US$', ' '/;
-loop (Runs,
-     PUT Runs.tl, GasCC_FUEL(Runs):0:5 /);
-
-PUT 'GasCC FOM US$', ' '/;
-loop (Runs,
-     PUT Runs.tl, GasCC_FOM(Runs):0:5 /);
-
-PUT 'GasCC VOM US$', ' '/;
-loop (Runs,
-     PUT Runs.tl, GasCC_VOM(Runs):0:5 /);
+loop ((Runs,j),
+     PUT 'Discharge duration', j.tl, Runs.tl, SummaryD(Runs,j):0:5, 'h' /);
+     
+loop ((Runs,j),
+     PUT 'Equivalent number of cycles', j.tl, Runs.tl, ((TotalGenS(Runs,j))/(TotalEcapS(Runs,j)+0.0001)):0:5, '-' /);
 
 Putclose ;
 
@@ -550,4 +647,6 @@ loop ((Runs,w),
      PUT Runs.tl, w.tl, 'Wind', SelectedWind(Runs,w):0:5,CapWind(w,'latitude'):0:5,CapWind(w,'longitude'):0:5, CapWind(w,'capacity'):0:5 /);
 Putclose ;
 
-
+* Export data to GDX
+$GDXOUT SDOM_results.gdx
+EXECUTE_UNLOAD;
