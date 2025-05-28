@@ -424,7 +424,7 @@ loop (Runs,
      PUT 'Capacity', 'Wind', Runs.tl, TotalCapWind(Runs):0:5, 'MW' /);
      
 loop (Runs,
-     PUT 'Total capacity', 'All', Runs.tl, (TotalCapWind(Runs) + TotalCapPV(Runs) + TotalCapCC(Runs)):0:5, 'MW' /);
+     PUT 'Capacity', 'All', Runs.tl, (TotalCapWind(Runs) + TotalCapPV(Runs) + TotalCapCC(Runs)):0:5, 'MW' /);
      
 loop (Runs,
      PUT 'Total generation', 'GasCC', Runs.tl, TotalGenGasCC(Runs):0:5, 'MWh' /);
@@ -463,7 +463,7 @@ loop (Runs,
      PUT 'CAPEX', 'Wind', Runs.tl, WindCapex(Runs):0:5, 'US$' /);
 
 loop (Runs,
-     PUT 'Total generators CAPEX', 'All', Runs.tl, (GasCC_Capex(Runs) + SolarCapex(Runs) + WindCapex(Runs)):0:5, 'US$' /);      
+     PUT 'CAPEX', 'All', Runs.tl, (GasCC_Capex(Runs) + SolarCapex(Runs) + WindCapex(Runs)):0:5, 'US$' /);      
 
 loop (Runs,
      PUT 'Power Capex', 'Li-Ion', Runs.tl, Li_Ion_Pcapex(Runs):0:5, 'US$' /);
@@ -493,7 +493,7 @@ loop (Runs,
      PUT 'Energy Capex', 'H2', Runs.tl, H2_Ecapex(Runs):0:5, 'US$' /);
      
 loop (Runs,
-     PUT 'Total Energy Capex', 'All', Runs.tl, (Li_Ion_Ecapex(Runs) + CAES_Ecapex(Runs) + PHS_Ecapex(Runs) + H2_Ecapex(Runs)):0:5, 'US$' /);
+     PUT 'Energy Capex', 'All', Runs.tl, (Li_Ion_Ecapex(Runs) + CAES_Ecapex(Runs) + PHS_Ecapex(Runs) + H2_Ecapex(Runs)):0:5, 'US$' /);
 
 loop (Runs,
      PUT 'Total Capex', 'Li-Ion', Runs.tl, (Li_Ion_Ecapex(Runs) + Li_Ion_Pcapex(Runs)):0:5, 'US$' /);
@@ -508,7 +508,7 @@ loop (Runs,
      PUT 'Total Capex', 'H2', Runs.tl, (H2_Ecapex(Runs) + H2_Pcapex(Runs)):0:5, 'US$' /);
      
 loop (Runs,
-     PUT 'Total Storage Capex', 'All', Runs.tl, (Li_Ion_Pcapex(Runs) + CAES_Pcapex(Runs) + PHS_Pcapex(Runs) + H2_Pcapex(Runs) + Li_Ion_Ecapex(Runs) + CAES_Ecapex(Runs) + PHS_Ecapex(Runs) + H2_Ecapex(Runs)):0:5, 'US$' /);
+     PUT 'Total Capex', 'All', Runs.tl, (Li_Ion_Pcapex(Runs) + CAES_Pcapex(Runs) + PHS_Pcapex(Runs) + H2_Pcapex(Runs) + Li_Ion_Ecapex(Runs) + CAES_Ecapex(Runs) + PHS_Ecapex(Runs) + H2_Ecapex(Runs)):0:5, 'US$' /);
      
 
 loop (Runs,
@@ -533,7 +533,7 @@ loop (Runs,
      PUT 'FOM', 'H2', Runs.tl, H2_FOM(Runs):0:5, 'US$' /);
      
 loop (Runs,
-     PUT 'Total FOM', 'All', Runs.tl, (GasCC_FOM(Runs) + SolarFOM(Runs) + WindFOM(Runs) + Li_Ion_FOM(Runs) + CAES_FOM(Runs) + PHS_FOM(Runs) + H2_FOM(Runs)):0:5, 'US$' /);
+     PUT 'FOM', 'All', Runs.tl, (GasCC_FOM(Runs) + SolarFOM(Runs) + WindFOM(Runs) + Li_Ion_FOM(Runs) + CAES_FOM(Runs) + PHS_FOM(Runs) + H2_FOM(Runs)):0:5, 'US$' /);
      
 loop (Runs,
      PUT 'VOM', 'GasCC', Runs.tl, (GasCC_VOM(Runs) + GasCC_FUEL(Runs)):0:5, 'US$' /);
@@ -551,7 +551,7 @@ loop (Runs,
      PUT 'VOM', 'H2', Runs.tl, H2_VOM(Runs):0:5, 'US$' /);
 
 loop (Runs,
-     PUT 'Total VOM', 'H2', Runs.tl, (GasCC_VOM(Runs) + GasCC_FUEL(Runs) + Li_Ion_VOM(Runs) + CAES_VOM(Runs) + PHS_VOM(Runs) + H2_VOM(Runs)):0:5, 'US$' /);
+     PUT 'VOM', 'H2', Runs.tl, (GasCC_VOM(Runs) + GasCC_FUEL(Runs) + Li_Ion_VOM(Runs) + CAES_VOM(Runs) + PHS_VOM(Runs) + H2_VOM(Runs)):0:5, 'US$' /);
      
 loop (Runs,
      PUT 'OPEX', 'GasCC', Runs.tl, (GasCC_FOM(Runs) + GasCC_VOM(Runs) + GasCC_FUEL(Runs)):0:5, 'US$' /);
@@ -575,31 +575,31 @@ loop (Runs,
      PUT 'OPEX', 'H2', Runs.tl, (H2_FOM(Runs) + H2_VOM(Runs)):0:5, 'US$' /);
      
 loop (Runs,
-     PUT 'Total OPEX', 'H2', Runs.tl, (GasCC_FOM(Runs) + SolarFOM(Runs) + WindFOM(Runs) + Li_Ion_FOM(Runs) + CAES_FOM(Runs) + PHS_FOM(Runs) + H2_FOM(Runs) + GasCC_VOM(Runs) + GasCC_FUEL(Runs) + Li_Ion_VOM(Runs) + CAES_VOM(Runs) + PHS_VOM(Runs) + H2_VOM(Runs)):0:5, 'US$' /);
+     PUT 'OPEX', 'H2', Runs.tl, (GasCC_FOM(Runs) + SolarFOM(Runs) + WindFOM(Runs) + Li_Ion_FOM(Runs) + CAES_FOM(Runs) + PHS_FOM(Runs) + H2_FOM(Runs) + GasCC_VOM(Runs) + GasCC_FUEL(Runs) + Li_Ion_VOM(Runs) + CAES_VOM(Runs) + PHS_VOM(Runs) + H2_VOM(Runs)):0:5, 'US$' /);
   
 loop ((Runs,j),
      PUT 'Charge power capacity', j.tl, Runs.tl,  TotalCapScha(Runs,j):0:5, 'MW' /);
      
 loop (Runs,
-     PUT 'Total charge power capacity', 'All', Runs.tl,  sum(j,TotalCapScha(Runs,j)):0:5, 'MW' /);
+     PUT 'Charge power capacity', 'All', Runs.tl,  sum(j,TotalCapScha(Runs,j)):0:5, 'MW' /);
 
 loop ((Runs,j),
      PUT 'Discharge power capacity', j.tl, Runs.tl,  TotalCapSdis(Runs,j):0:5, 'MW' /);
      
 loop (Runs,
-     PUT 'Total discharge power capacity', 'All', Runs.tl,  sum(j,TotalCapSdis(Runs,j)):0:5, 'MW' /);
+     PUT 'Discharge power capacity', 'All', Runs.tl,  sum(j,TotalCapSdis(Runs,j)):0:5, 'MW' /);
      
 loop ((Runs,j),
      PUT 'Average power capacity', j.tl, Runs.tl,  ((TotalCapScha(Runs,j) + TotalCapSdis(Runs,j))/2):0:5, 'MW' /);
      
 loop (Runs,
-     PUT 'Total average power capacity', 'All', Runs.tl,  (sum(j,(TotalCapScha(Runs,j) + TotalCapSdis(Runs,j)))/2):0:5, 'MW' /);
+     PUT 'Average power capacity', 'All', Runs.tl,  (sum(j,(TotalCapScha(Runs,j) + TotalCapSdis(Runs,j)))/2):0:5, 'MW' /);
 
 loop ((Runs,j),
      PUT 'Energy capacity', j.tl, Runs.tl,  TotalEcapS(Runs,j):0:5, 'MWh' /);
      
 loop (Runs,
-     PUT 'Total energy capacity', 'All', Runs.tl,  sum(j,TotalEcapS(Runs,j)):0:5, 'MWh' /);
+     PUT 'Energy capacity', 'All', Runs.tl,  sum(j,TotalEcapS(Runs,j)):0:5, 'MWh' /);
 
 loop ((Runs,j),
      PUT 'Discharge duration', j.tl, Runs.tl, SummaryD(Runs,j):0:5, 'h' /);
