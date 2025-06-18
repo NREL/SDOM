@@ -19,107 +19,146 @@ Set h hours in the analysis period /1*8760/
 
 Alias (h, hh)
 
+$setGlobal InputFolder inputs
+$setGlobal sim_year 2050
+* Define the name of the output folder
+$setGlobal OutputFolder Output
+
 Set    k potential solar PV plants
 /
-$include Set_k(SolarPV).txt
+$include %InputFolder%/Set_k(SolarPV).txt
 /
 
 Set    w potential wind plants
 /
-$include Set_w(Wind).txt
+$include %InputFolder%/Set_w(Wind).txt
 /
 
 Set    l properties of power plants
 /
-$include Set_l(Properties).txt
+$include %InputFolder%/Set_l(Properties).txt
 /
 
 
-Set j energy storage technologies /Li-Ion, CAES, PHS, H2/
-;
+Set    j storage technologies
+/
+$include %InputFolder%/Set_st(StorageTech).txt
+/
 
-set b(j) storage technologies with coupled charging and discharging units /Li-Ion, PHS/
+Set b(j) storage technologies with coupled charging and discharging units
+/
+$include %InputFolder%/Set_coupl_st(CoupledStorageTech).txt
+/
 
 Set    sp properties of storage technologies /P_Capex, E_Capex, Eff, Min_Duration, Max_Duration, Max_P, FOM, VOM, lifetime, CostRatio/
 ;
 
-Set Runs runs for the analysis /1/
+Set Runs runs for the analysis /1/;
 
 
-Scalars
-         FCR_VRE Fixed Charge Rate for VRE /0 /
-         FCR_GasCC Fixed Charge Rate for Gas CC /0 /
-         GenMix_Target /%GenMix_TargetValue%/
-         CapexGasCC Capex for gas combined cycle units (US$ per kW) /940.6078576/
-         HR Heat rate of gas combined cycle units (MMBtu per MWh) /6.4005/
-         GasPrice Gas prices (US$ per MMBtu per) /4.113894393/
-         FOM_GasCC FO&M for gas combined cycle units (US$ per kW-year) /13.2516707/
-         VOM_GasCC VO&M for gas combined cycle units (US$ per MWh) /2.226321156/
-         AlphaNuclear Activation of nuclear generation /%AlphaNuclearValue%/
-         AlphaLargHy Activation of large hydro generation /1/
-         AlphaOtheRe Activation of other renewable generation /1/
-         MaxCycles Lifetime (100% DoD) of Li-Ion batteries (cycles) /3250/
-         r discount rate /0.06/
+* Declare parameters
+* FCR_VRE = Fixed Charge Rate for VRE
+* LifeTimeVRE = Life time of VRE in years
+* FCR_GasCC =  Fixed Charge Rate for Gas CC /0 /
+* LifeTimeGasCC = Life time of VRE in years
+* GenMix_Target =  /%GenMix_TargetValue%/
+* CapexGasCC =  Capex for gas combined cycle units (US$ per kW) /940.6078576/
+* HR =  Heat rate of gas combined cycle units (MMBtu per MWh) /6.4005/
+* GasPrice =  Gas prices (US$ per MMBtu per) /4.113894393/
+* FOM_GasCC =  FO&M for gas combined cycle units (US$ per kW-year) /13.2516707/
+* VOM_GasCC =  VO&M for gas combined cycle units (US$ per MWh) /2.226321156/
+* AlphaNuclear =  Activation of nuclear generation /%AlphaNuclearValue%/
+* AlphaLargHy =  Activation of large hydro generation /1/
+* AlphaOtheRe =  Activation of other renewable generation /1/
+* MaxCycles =  Lifetime (100% DoD) of Li-Ion batteries (cycles) /3250/
+* r =  discount rate
+
+Scalars FCR_VRE, LifeTimeVRE, FCR_GasCC, LifeTimeGasCC, GenMix_Target, CapexGasCC, HR, GasPrice, FOM_GasCC, VOM_GasCC, AlphaNuclear, AlphaLargHy, AlphaOtheRe, MaxCycles, r;
+
+* Table to load scalar values from CSV
+Table ScalarsVal(*,*) scalar values
+$Ondelim
+$include %InputFolder%/scalars.csv
+$Offdelim
 ;
 
-FCR_VRE = (r*(1+r)**30)/((1+r)**30-1);
 
-FCR_GasCC = (r*(1+r)**30)/((1+r)**30-1);
+* Assign values from the table to scalars
+FCR_VRE = ScalarsVal('FCR_VRE', "Value");
+LifeTimeVRE = ScalarsVal("LifeTimeVRE", "Value");
+FCR_GasCC    = ScalarsVal("FCR_GasCC", "Value");
+LifeTimeGasCC = ScalarsVal("LifeTimeGasCC", "Value");
+GenMix_Target = ScalarsVal("GenMix_Target", "Value");
+CapexGasCC   = ScalarsVal("CapexGasCC", "Value");
+HR           = ScalarsVal("HR", "Value");
+GasPrice     = ScalarsVal("GasPrice", "Value");
+FOM_GasCC    = ScalarsVal("FOM_GasCC", "Value");
+VOM_GasCC    = ScalarsVal("VOM_GasCC", "Value");
+AlphaNuclear = ScalarsVal("AlphaNuclear", "Value");
+AlphaLargHy  = ScalarsVal("AlphaLargHy", "Value");
+AlphaOtheRe  = ScalarsVal("AlphaOtheRe", "Value");
+MaxCycles    = ScalarsVal("MaxCycles", "Value");
+r            = ScalarsVal("r", "Value");
+
+
+FCR_VRE = (r*(1+r)**LifeTimeVRE)/((1+r)**LifeTimeVRE-1);
+
+FCR_GasCC = (r*(1+r)**LifeTimeGasCC)/((1+r)**LifeTimeGasCC-1);
 
 
 Parameter Load(h) Load for every hour in the analysis period (MW)
 /
 $Ondelim
-*$include Load_hourly_2019.csv
-$include Load_hourly_2050.csv
+$include %InputFolder%/Load_hourly_%sim_year%.csv
 $Offdelim
 /
 
 Parameter Nuclear(h) Generation from nuclear power plants for every hour in the analysis period (MW)
 /
 $Ondelim
-$include Nucl_hourly_2019.csv
+$include %InputFolder%/Nucl_hourly_%sim_year%.csv
 $Offdelim
 /
 
 Parameter LargeHydro(h) Generation from large hydro power plants for every hour in the analysis period (MW)
 /
 $Ondelim
-$include lahy_hourly_2019.csv
+$include %InputFolder%/lahy_hourly_%sim_year%.csv
 $Offdelim
 /
 
 Parameter OtherRenewables(h) Generation from other renewable power plants for every hour in the analysis period (MW)
 /
 $Ondelim
-$include otre_hourly_2019.csv
+$include %InputFolder%/otre_hourly_%sim_year%.csv
 $Offdelim
 /
 
 
 Table CFSolar(h,k) Hourly capacity factor for solar PV plants (fraction)
 $Ondelim
-$include CFSolar_2050.csv
+$include %InputFolder%/CFSolar_%sim_year%.csv
 $Offdelim
 
 Table CFWind(h,w) Hourly capacity factor for wind plants (fraction)
 $Ondelim
-$include CFWind_2050.csv
+$include %InputFolder%/CFWind_%sim_year%.csv
 $Offdelim
 
 Table CapSolar(k,l) Properties of the solar PV plants
 $Ondelim
-$include CapSolar_2050.csv
+$include %InputFolder%/CapSolar_%sim_year%.csv
 $Offdelim
 
 Table CapWind(w,l) Properties of the wind plants
 $Ondelim
-$include CapWind_2050.csv
+$include %InputFolder%/CapWind_%sim_year%.csv
 $Offdelim
+
 
 Table StorageData(sp,j) Properties of storage technologies
 $Ondelim
-$include StorageData_2050.csv
+$include %InputFolder%/StorageData_%sim_year%.csv
 $Offdelim
 ;
 
@@ -364,7 +403,7 @@ loop ( Runs ,
 
 FILE csv Report File /OutputSummary.csv/;
 PUT csv
-put_utility 'ren' / 'OutputSummary_SDOM_%FNAME%_Nuclear_' AlphaNuclear:0:0 '_Target_' GenMix_Target:00 '_.csv';
+put_utility 'ren' / '%OutputFolder%/%sim_year%_OutputSummary_SDOM_%FNAME%_Nuclear_' AlphaNuclear:0:0 '_Target_' GenMix_Target:00 'NoInportExport_.csv';
 csv.pc = 5;
 PUT csv;
 
@@ -514,7 +553,7 @@ Putclose ;
 
 FILE csvStorage Report File /OutputStorage.csv/;
 PUT csvStorage
-put_utility 'ren' / 'OutputStorage_SDOM_%FNAME%_Nuclear_' AlphaNuclear:0:0 '_Target_' GenMix_Target:00 '_.csv';
+put_utility 'ren' / '%OutputFolder%/%sim_year%_OutputStorage_SDOM_%FNAME%_Nuclear_' AlphaNuclear:0:0 '_Target_' GenMix_Target:00 'NoInportExport_.csv';
 csvStorage.pc = 5;
 PUT csvStorage;
 
@@ -526,7 +565,7 @@ Putclose ;
 
 FILE csvGen Report File /OutputGeneration.csv/;
 PUT csvGen
-put_utility 'ren' / 'OutputGeneration_SDOM_%FNAME%_Nuclear_' AlphaNuclear:0:0 '_Target_' GenMix_Target:00 '_.csv';
+put_utility 'ren' / '%OutputFolder%/%sim_year%_OutputGeneration_SDOM_%FNAME%_Nuclear_' AlphaNuclear:0:0 '_Target_' GenMix_Target:00 'NoInportExport_.csv';
 csvGen.pc = 5;
 PUT csvGen;
 
@@ -538,7 +577,7 @@ Putclose ;
 
 FILE csvVRE Report File /OutputSelectedVRE.csv/;
 PUT csvVRE
-put_utility 'ren' / 'OutputSelectedVRE_SDOM_%FNAME%_Nuclear_' AlphaNuclear:0:0 '_Target_' GenMix_Target:00 '_.csv';
+put_utility 'ren' / '%OutputFolder%/%sim_year%_OutputSelectedVRE_SDOM_%FNAME%_Nuclear_' AlphaNuclear:0:0 '_Target_' GenMix_Target:00 '_.csv';
 csvVRE.pc = 5;
 PUT csvVRE;
 
