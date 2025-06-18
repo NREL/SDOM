@@ -309,6 +309,8 @@ Parameter
          TotalNuclear(Runs) Total generation from nuclear units (MWh)
          TotalGenS(Runs,j) Total generation from storage units j (MWh)
          TotalCost(Runs) Total cost US$
+         TotalPCarge(Runs,j) Total charged energy for storage unit j (MWh)
+         TotalAllPCarge(Runs) Total charged energy for all storage units j (MWh)
          SummaryPC(Runs,h,j) Charging power for storage technology j during hour h (MW)
          SummaryPD(Runs,h,j) Discharging power for storage technology j during hour h (MW)
          SummarySOC(Runs,h,j) State-of-charge (SOC) for storage technology j during hour h (MWh)
@@ -366,6 +368,8 @@ loop ( Runs ,
      TotalHydro(Runs) = sum(h, LargeHydro(h));
      TotalNuclear(Runs) = sum(h, Nuclear(h));
      SummaryPC(Runs,h,j) = PC.l(h,j);
+     TotalPCarge(Runs,j) = sum(h,SummaryPC(Runs,h,j));
+     TotalAllPCarge(Runs) = sum(j,TotalPCarge(Runs,j)) ; 
      SummaryPD(Runs,h,j) = PD.l(h,j);
      SummarySOC(Runs,h,j) = SOC.l(h,j);
      SummaryD(Runs,j) = sqrt(StorageData('Eff',j))*Ecap.l(j)/(Pdis.l(j) + 1e-15);
@@ -449,6 +453,15 @@ loop ((Runs,j),
      
 loop (Runs,
      PUT 'Total generation', 'All', Runs.tl, (TotalGenGasCC(Runs) + TotalGenPV(Runs) + TotalGenWind(Runs) + TotalOtherRen(Runs) + TotalHydro(Runs) + TotalNuclear(Runs) + sum(j,TotalGenS(Runs,j))):0:5, 'MWh' /);
+     
+loop ((Runs,j),
+     PUT 'Storage energy charging', j.tl, Runs.tl, TotalPCarge(Runs,j):0:5, 'MWh' /);
+     
+loop (Runs,
+     PUT 'Storage energy charging', 'All', Runs.tl, TotalAllPCarge(Runs):0:5, 'MWh' /);
+
+loop (Runs,
+     PUT 'Total Capex', 'Li-Ion', Runs.tl, (Li_Ion_Ecapex(Runs) + Li_Ion_Pcapex(Runs)):0:5, 'US$' /);
      
 loop (Runs,
      PUT 'Total demand', '', Runs.tl, sum(h, Load(h)):0:5, 'MWh' /);
