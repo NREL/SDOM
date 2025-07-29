@@ -25,7 +25,7 @@ SDOM is an NREL open-source high-resolution grid planning framework designed to 
 - **Platforms:** 
   - SDOM was originally developed in GAMS (https://github.com/NREL/SDOM). 
   
-  - In order offer a full open-source solution also was developed this python package. This version requires python 3.10+.
+  - In order offer a full open-source solution also was developed this python package. This version will be released soon and it requires python 3.10+.
 
 - **Solver Compatibility:** Currently the SDOM python version is only compatible with [open-source CBC solver](https://www.coin-or.org/Cbc/cbcuserguide.html). In this repo the [windows executable for cbc](./cbc.exe) is provided. You will need to provide the path of cbc solver to run SDOM as illustrated in our [script demonstration](#sdom-example-(demonstration-script))
 
